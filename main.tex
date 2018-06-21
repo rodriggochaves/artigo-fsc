@@ -1,0 +1,119 @@
+\documentclass[10pt, a4paper]{article}
+
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage[autostyle]{csquotes}
+\usepackage{mathptmx}
+\usepackage{titlesec}
+\usepackage[backend=biber,style=numeric]{biblatex}
+\usepackage{enumitem}
+\addbibresource{refs.bib}
+\AtNextBibliography{\small}
+
+\setlist[enumerate]{itemsep=0mm}
+
+\font\titlefont=cmr12 at 14pt
+\font\authorsfont=cmr12 at 12pt
+\font\sectionfont=cmr12 at 11pt
+
+
+\titleformat*{\section}{\fontsize{11}{11}\selectfont\bfseries}
+\titleformat*{\subsection}{\fontsize{11}{11}\selectfont\bfseries}
+
+\title{\titlefont{\textbf{Estudo do Processador ARM Cortex M7}}}
+\author{
+  \authorsfont{\textit{Kaliana Dias}}\\
+  \and
+  \authorsfont{\textit{Rodrigo Chaves}}\\  
+}
+\date{}
+
+\begin{document}
+\maketitle
+\section{Introdução}
+
+{\it Internet of things} é um conceito em ascensão que diz respeito sobre o uso de sensores e utilidades do dia a dia de quaisquer pessoas que agora são capazes de conectar com a internet. Esses componentes capturam o estado atual de um determinado contexto e são capazes de criar uma imagem do que está acontecendo no momento, a qual pode ser transmitida e usada para os mais diversos propósitos com o uso da internet \autocite{internet-of-things}. Diante desse cenário, processadores capazes de serem colocados dentro de um relógio, por exemplo, começam a ganhar mais importância.  A família de processadores ARM 
+Cortex M é muito utilizada nesse contexto e o processador ARM Cortex M7, 
+integrante desta família, será o foco deste artigo.
+
+\section{Fundamentação Teórica}
+
+Arquiteturas CISC ({\it Complex Instruction Set Computer}) é uma arquitetura que se preocupa em criar um conjunto de instruções que possibilite que o número de instruções de um programa seja menor, criando instruções mais complexas e que utilizam um maior número de ciclos do processador.  Arquiteturas RISC ({\it Reduced Instruction Set Computer}), pelo contrário, é uma arquitetura que se preocupa em criar instruções mais simples e que consomem um número menor de ciclos do processador para serem executadas. Isso acaba resultando em programas com um maior número de instruções. 
+
+Processadores Superescalares são capazes de executar mais de uma instrução paralelamente. Diferente dos processadores escalares, os quais são capazes de executar apenas uma instrução por vez \autocite{superscalar-processors}. Os processadores e microcontroladores ARM -- {\it Advanced RISC Machine } -- por possuirem arquiteturas com estas características além de baixo consumo de energia, redução de custos e menor dissipação de calor são ideais em projetos de fabricação de dispositivos portáteis movidos a baterias.  
+
+Os processadores ARM Cortex são atualmente divididos em três famílias: ARM Cortex A, ARM Cortex R e ARM Cortex M. Cada uma dessas famílias têm domínios de aplicações e características diferentes: A ARM Cortex A (ou {\it application processors}) é focada em processadores para smartphones e computação mobile e tem o maior pipeline das três famílias; a ARM Cortex R (ou {\it real-time processors}) é focada em microcontroladores industriais e tem um pipeline intermediário das três famílias e a ARM Cortex M (ou {\it microcontrollers processors}) é focada em processadores embutidos em sensores ou até mesmo drones e tem o menor pipeline. O processador ARM Cortex M7 é um processador de classificação RISC superescalar de dual issue, ou seja, é capaz de executar duas instruções ao mesmo tempo.
+
+Em busca de uma melhor comunicação entre o processador e a memória, os processadores ARM Cortex M7 usam barramentos que seguem o protocolo AXI 4. Esse protocolo foi criado pela ARM com objetivo de aumentar a capacidade de {\it debug} e diminuir o tempo de produção dos produtos finais até esses cheguem ao mercado \autocite{axi-experiment}. Aumentar a capacidade de {\it debug} significa aumentar o poder do projetista em desenvolver um novo produto encontrando mais facilmente comportamentos indesejados nas diversas funcionalidades do dispositivo. A comunicação acontece entre vários dispositivos mestres e escravos e um barramento de interconexão. O protocolo define cinco canais com objetivos especificos de trasmissão de dados e endereços. Os canais permitem que os mestres e escravos troquem dados assincronamente utilizando um \textit{handshake} com dois sinais específicos: READY e VALID \autocite{amba-axi-manual}.
+
+
+\section{O Processador ARM Cortex M7}
+
+O Processador ARM Cortex M7  \autocite{cortex-m7-trm} tem o objetivo de ser um processador de alto desempenho que usa pouca energia.
+
+Esse processador contém os seguintes componentes principais sempre presentes \autocite{cortex-m7-trm}:
+
+\begin{enumerate}
+\item \textbf{Data Processing Unit}: composta por 2 ALU's, sendo uma ALU capaz de executar operações SIMD, essa unidade é responsável por executar duas instruções paralelamente (dual issue instruction) e realizar a maiora das operações aritméticas e lógicas;
+    
+\item \textbf{Prefetch Unit}: essa unidade consegue 1) carregar até 4 instruções de 64 bits, passando para a próxima unidade duas instruções de 32 bits a cada ciclo; e 2) quando ativo, utilizar o subcomponente de \textit{branch target address cache} (BTAC) para turn around de um ciclo do branch predictor e endereço alvo;
+
+\item \textbf{Load/Store Unit}: unidade responsável por acessar a memória por meio da 1) intercafe AXIM; 2) cache; 3) canais para TCM; ou 4) canais para interface AHB.
+    
+\item \textbf{Nested Vectored Interrupt Controller}: é o vetor de interrupções configurável colocado próximo ao core do processador para alcançar uma latência pequena nas interrupções de sistema.
+\end{enumerate}
+
+Fora os componentes sempre presente neste processador, o mesmo permite ser configurado adicionando novos componentes conforme a necessidade da aplicação. Esses componentes são, mas não exclusivamente: floating point unit; wake-up interrupt controller; sistema de memória.
+
+\subsection{Características}
+
+Os processadores ARM Cortex M7 usam a arquitetura de instruções chamada ARMv7-M como conjunto de instruções. Essa arquitetura tem sido desenvolvida pela Acorn Computers Limited of Cambridge, England e são conhecidas como RISC desde da sua primeira versão, lançada em 1985 \autocite{arm-white-paper} \autocite{arm-furber}. A versão ARMv7 foi lançada em 2006 e teve atualizações até 2010. Essa arquitetura foi dividida em 3 grandes grupos: ARMv7-A, ARMv7-R e ARMv7-M. Cada uma dessas são correspondentes a família de processadores ARM Cortex.
+     
+É importante ressaltar que o processador ARM Cortext M7 consegue executar até duas instruções simultâneas desde que algumas condições sejam cumpridas, ou seja, pares espeficicos de instruções e alguns registradores especificos sejam utilizados.
+
+O fluxo principal do pipeline do processador Cortex M7 é \autocite{cortex-m7-launches}: 1) fetch; 2) decode; 3) issue; 4) execute \#1; 5) execute \#2; 6) write/store.
+
+Esse fluxo representa bastante o fluxo do pipeline tradicional acresentado de uma etapa a mais de execute. Entretanto, o Cortex M7 possui uma unidade de prefecth que antecede o pipeline do mesmo e é o momento onde as instruções são precarregadas e acontece o branch prediction. É importante ressaltar que esse é apenas um fluxo e ele pode ser um subconjunto dessas etapas para várias instruções dessa arquitetura.
+
+Existem outros pipelines possíveis. As etapas de  1) prefetch, 2) fetch, 3) decode and issue estão presentes em todos os pipelines. As versões secundárias do pipeline são concatenadas no final dessas 3 etapas obrigatórias: Load/Store Pipeline (composto por três etapas de load e store); ALU \#2 Pipeline (o pipeline tradicional a menos de uma etapa de execução); Multiply Accumulate Pipeline (MAC) (pipeline que recebe no formato \texttt{32 bits x 32 bits + 64 bits = 64 bits}); Pipeline de ponto flutuante (execução de operações de ponto flutuantes em 4 estágios)
+
+O processsador Cortex M7 possui uma funcionalidade chamada de "speculative prefetch" de dados, implementada dentro da BTCA \autocite{note-an4838}. O processador ARM acessa código do DSP (Digital Signal Processor) que é, frequemente, uma corrente de dados (data stream) como uma entrada de aúdio ou equalização de aúdio \autocite{cortex-m7-launches}. Esse tipo de processamento é implementada como um loop, que em 99\% dos casos resulta no mesmo resultado, fazendo com que uma estratégia de branch prediction aumente a eficiência do processamento. Essa funcionalidade é utilizável em memórias e barramentos que suportem a carga do BTCA quando esse componente faz ao busca de 4 instruções por ciclo. A Prefetch Unit pode então, ao buscar uma instrução branch, buscar as duas possibilidades do branch, \texttt{taken} ou \texttt{not taken}, e manter em cache até que a resolução da mesma seja calculada no pipeline.
+
+Quanto a cache, o processador Cortex M7 pode utilizar um componente de Cache L1 nomeada como SAM S70 / E70 \autocite{note-an-15679}. Essa cache é dividida em duas partes: a sessão para armazenamento de instruções (I-Cache) é two-way set-associative; a sessão de armazenamento de dados (D-Cache) é 4-way set-associative. Ambas tem 16kB juntas e cada linha tem 32 bits. A Cache I/D, como é chamada nos manuais do processador, também utiliza a interface AXIM para executar a comunicação entre o processador e a memória.
+
+Para manter a coerência de Cache, os processadores da família Cortex utilizam o protocolo MESI. Durante a pesquisa, nenhum documento especifico do processador Cortex M7 afirma o uso deste protocolo de coerência de cache mas sim um conjunto de instruções que permitem implementar esse mesmo protocolo. O Cortex M7 oferece ao desenvolvedor um conjunto simples de operações que devem ser realizadas afim de manter a coerência. Existem 2 conjuntos de operações usadas para a manutenção da coerência de cache: 1) invalidate cache, totalmente ou por endereço; e 2) clean cache ou flush.
+
+Além disso, o processador tem suporte para uma \textit{Bus Interface Unit}(BIU) que permite instalar uma memória cache L2 de alta performance.
+
+Os processadores Cortex M7 possuem um sistema de memória opcional, o qual pode conter uma Memory Proctection Unit, MPU e uma unidade de Cache. A unidade MPU funciona como uma proteção para uma area de memória não ser acessada indefidamente. As intruções ou dados buscados da memória externa são contralados atráves da interface AXIM. Essa interface é um padrão também desenvolvido pela ARM que utiliza uma interface de 64 bits para comunicar o processador com a memória externa.
+
+O processador disponibiliza 3 barramentos para conexão com os componentes de memória: 1) uma interface Tightly Coupled Memory (TCM), dividido em ITCM e DTCM, as quais são compostas por um barramento de 64 bits e 2 barramentos de 32 bits, respectivamente, utilizada para se comunicar com a memória RAM; 2) uma interface Havard de dados e instruções que cumpre o contrato AXI 4, composta por barramentos de 64 bits, utilizada para se conectar com componentes externos de memória e 3) uma interface de baixa latência AHB-Lite periferíca, usada somente para buscar dados em um barramento de 32 bits. A diferença entre o protocolo AXi 4 e o AHB são a quantidade de canais: a AHB tem apenas um canal enquanto a AXI 4 tem 5 canais \autocite{computer-cortex-m7}.
+
+
+\subsection{Avaliação}
+
+Observando os processadores da família Cortex M, o Cortex M7 é o mais avançado e com maior nível de customização \autocite{arm-white-paper}. Isso permite adaptar o processador para o contexto que este vai ser utilizado, mas é também importante ressaltar o custo desta customização.
+
+As caracteristicas desse processador fazem ele uma ótima escolha para sistemas embarcados. Poder customizar o processador para sua tarefa permite remover componentes desnessários, otimizando exatamente para uma tarefa especifica e reduzindo ainda mais seu consumo de energia. E ainda pode-se adicionar componentes que facilitem alguma tarefa especifica. Um exemplo desta carateristica é o projetista pode escolher usar a interface AHB ou a interface AXI\autocite{axi-experiment}. Como a interface AXI possui 5 canais, o consumo de energia é maior. Então, apesar da interface AXI ter um fluxo mais simples e rápido de informações, é possivel sacrificar isso por um menor consumo de energia.
+
+Entretanto, por ser muito customizável, esse processador depende de um esforço inicial para ser utilizado para as escolhas dos componentes certos para seu uso e a configuração dos mesmo. Isso pode aumentar o tempo até que o produto final seja colocado no mercado. E além disso, é preciso que os componentes certos sejam escolhidos pois a manutenção desses será complicada caso sejam selecionados errados.
+
+E ainda, o mais interessante é o fato dos processadores Cortex-M utilizarem \textit{Cortex Microcontroller Software Interface Standard} (CMSIS), uma interface de programação que abstrae complexidades comuns a todos os processadores dessa família. Essa interface possui código aberto e pode ser acessada em \url{https://github.com/ARM-software/CMSIS_5}.
+
+Portanto, o processador Cortex M7 é o processador mais avançado da família Cortex M pois oferece a maior taxa de processamento \autocite{arm-white-paper}, mas a escolha deste para ser utilizado em algum produto necessita de um esforço inicial para a seleção dos componentes extras que serão utilizados, mas depois de corretamente configurado, oferece uma ótima solução para o sistema que será utilizado.
+
+
+\section{Conclusão}
+
+O Processador Cortex M7 possui algumas funcionalidades que permitem o mesmo ter uma vazão de instruções grande devido ao tamanho do seu pipeline de 6 estágios e sua capacidade superescalar de processar duas intruções ao mesmo tempo.
+
+Ao mesmo tempo, a pesquisa mostra que esses processadores foram desenvolvidos com objetivo muito claro de oferecer um nível de customização muito grande. Isso permite que os clientes possam selecionar os componentes que acham mais importantes, diminuindo o consumo de energiae aumentando o nível de processamento. No contexto de aplicação de microprocessadores, essas caracteristicas são muito importantes pois energia é um recurso limitado e cada vez mais encontramos programas que precisam de mais processamento.
+ 
+
+\printbibliography[title={Referências}]
+
+
+\end{document}
